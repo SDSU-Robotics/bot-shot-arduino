@@ -45,7 +45,7 @@ void setup()
 {
   Wire.begin();
   // TWBR = 12;  // 400 kbit/sec I2C speed
-  Serial.begin(38400);
+  Serial.begin(19200);
 
   while(!Serial){};
 
@@ -57,51 +57,26 @@ void setup()
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
-  Serial.print(F("MPU9250 I AM 0x"));
-  Serial.print(c, HEX);
-  Serial.print(F(" I should be 0x"));
-  Serial.println(0x71, HEX);
-
+  
   if (c == 0x71) // WHO_AM_I should always be 0x71
   {
-    Serial.println(F("MPU9250 is online..."));
-
     // Start by performing self test and reporting values
     myIMU.MPU9250SelfTest(myIMU.selfTest);
-    Serial.print(F("x-axis self test: acceleration trim within : "));
-    Serial.print(myIMU.selfTest[0],1); Serial.println("% of factory value");
-    Serial.print(F("y-axis self test: acceleration trim within : "));
-    Serial.print(myIMU.selfTest[1],1); Serial.println("% of factory value");
-    Serial.print(F("z-axis self test: acceleration trim within : "));
-    Serial.print(myIMU.selfTest[2],1); Serial.println("% of factory value");
-    Serial.print(F("x-axis self test: gyration trim within : "));
-    Serial.print(myIMU.selfTest[3],1); Serial.println("% of factory value");
-    Serial.print(F("y-axis self test: gyration trim within : "));
-    Serial.print(myIMU.selfTest[4],1); Serial.println("% of factory value");
-    Serial.print(F("z-axis self test: gyration trim within : "));
-    Serial.print(myIMU.selfTest[5],1); Serial.println("% of factory value");
-
+    
     // Calibrate gyro and accelerometers, load biases in bias registers
     myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias);
 
     myIMU.initMPU9250();
     // Initialize device for active mode read of acclerometer, gyroscope, and
     // temperature
-    Serial.println("MPU9250 initialized for active data mode....");
 
     // Read the WHO_AM_I register of the magnetometer, this is a good test of
     // communication
     byte d = myIMU.readByte(AK8963_ADDRESS, WHO_AM_I_AK8963);
-    Serial.print("AK8963 ");
-    Serial.print("I AM 0x");
-    Serial.print(d, HEX);
-    Serial.print(" I should be 0x");
-    Serial.println(0x48, HEX);
-
+    
     if (d != 0x48)
     {
       // Communication failed, stop here
-      Serial.println(F("Communication failed, abort!"));
       Serial.flush();
       abort();
     }
@@ -109,19 +84,6 @@ void setup()
     // Get magnetometer calibration from AK8963 ROM
     myIMU.initAK8963(myIMU.factoryMagCalibration);
     // Initialize device for active mode read of magnetometer
-    Serial.println("AK8963 initialized for active data mode....");
-
-    if (SerialDebug)
-    {
-      //  Serial.println("Calibration values: ");
-      Serial.print("X-Axis factory sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[0], 2);
-      Serial.print("Y-Axis factory sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[1], 2);
-      Serial.print("Z-Axis factory sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[2], 2);
-    }
-
     // Get sensor resolutions, only need to do this once
     myIMU.getAres();
     myIMU.getGres();
@@ -130,36 +92,14 @@ void setup()
     // The next call delays for 4 seconds, and then records about 15 seconds of
     // data to calculate bias and scale.
 //    myIMU.magCalMPU9250(myIMU.magBias, myIMU.magScale);
-    Serial.println("AK8963 mag biases (mG)");
-    Serial.println(myIMU.magBias[0]);
-    Serial.println(myIMU.magBias[1]);
-    Serial.println(myIMU.magBias[2]);
-
-    Serial.println("AK8963 mag scale (mG)");
-    Serial.println(myIMU.magScale[0]);
-    Serial.println(myIMU.magScale[1]);
-    Serial.println(myIMU.magScale[2]);
+   
 //    delay(2000); // Add delay to see results before serial spew of data
 
-    if(SerialDebug)
-    {
-      Serial.println("Magnetometer:");
-      Serial.print("X-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[0], 2);
-      Serial.print("Y-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[1], 2);
-      Serial.print("Z-Axis sensitivity adjustment value ");
-      Serial.println(myIMU.factoryMagCalibration[2], 2);
-    }
+  }
 
-  } // if (c == 0x71)
+ // if (c == 0x71)
   else
   {
-    Serial.print("Could not connect to MPU9250: 0x");
-    Serial.println(c, HEX);
-
-    // Communication failed, stop here
-    Serial.println(F("Communication failed, abort!"));
     Serial.flush();
     abort();
   }
@@ -239,12 +179,36 @@ void loop()
 
       if(SerialDebug)
       {
-        Serial.print("Yaw, Pitch, Roll: ");
-        Serial.print(myIMU.yaw, 2);
-        Serial.print(", ");
-        Serial.print(myIMU.pitch, 2);
-        Serial.print(", ");
-        Serial.println(myIMU.roll, 2);
+          byte yawArray[4];
+          float test0 = myIMU.yaw;
+          float test1 = myIMU.pitch;
+          int32_t IMU_int;
+  
+          Serial.print(':');
+  
+          if (test0 < 0)
+            Serial.print('-');
+          else
+            Serial.print('0');
+          
+          float abstest0 = abs(test0);
+          if (abstest0 < 100) Serial.print('0');
+          if (abstest0 < 10) Serial.print('0');
+          Serial.print(abstest0, 2);
+  
+          Serial.print(",");
+  
+          if (test1 < 0)
+            Serial.print('-');
+          else
+            Serial.print('0');
+          float abstest1 = abs(test1);
+          if (abstest1 < 100) Serial.print('0');
+          if (abstest1 < 10) Serial.print('0');
+          Serial.print(abstest1, 2);
+  
+          Serial.print("\n");      
+        
       }
 
       myIMU.count = millis();
