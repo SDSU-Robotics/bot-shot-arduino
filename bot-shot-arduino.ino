@@ -1,28 +1,27 @@
 /* MPU9250 Basic Example Code
- by: Kris Winer
- date: April 1, 2014
- license: Beerware - Use this code however you'd like. If you
- find it useful you can buy me a beer some time.
- Modified by Brent Wilkins July 19, 2016
+  by: Kris Winer
+  date: April 1, 2014
+  license: Beerware - Use this code however you'd like. If you
+  find it useful you can buy me a beer some time.
+  Modified by Brent Wilkins July 19, 2016
 
- Demonstrate basic MPU-9250 functionality including parameterizing the register
- addresses, initializing the sensor, getting properly scaled accelerometer,
- gyroscope, and magnetometer data out. Added display functions to allow display
- to on breadboard monitor. Addition of 9 DoF sensor fusion using open source
- Madgwick and Mahony filter algorithms. Sketch runs on the 3.3 V 8 MHz Pro Mini
- and the Teensy 3.1.
+  Demonstrate basic MPU-9250 functionality including parameterizing the register
+  addresses, initializing the sensor, getting properly scaled accelerometer,
+  gyroscope, and magnetometer data out. Added display functions to allow display
+  to on breadboard monitor. Addition of 9 DoF sensor fusion using open source
+  Madgwick and Mahony filter algorithms. Sketch runs on the 3.3 V 8 MHz Pro Mini
+  and the Teensy 3.1.
 
- SDA and SCL should have external pull-up resistors (to 3.3V).
- 10k resistors are on the EMSENSR-9250 breakout board.
+  SDA and SCL should have external pull-up resistors (to 3.3V).
+  10k resistors are on the EMSENSR-9250 breakout board.
 
- Hardware setup:
- MPU9250 Breakout --------- Arduino
- VDD ---------------------- 3.3V
- VDDI --------------------- 3.3V
- SDA ----------------------- A4
- SCL ----------------------- A5
- GND ---------------------- GND
- */
+  Hardware setup:
+  MPU9250 Breakout --------- Arduino
+  VDD ----------------------- 3.3V
+  SDA ----------------------- SDA
+  SCL ----------------------- SCL
+  GND ----------------------- GND
+*/
 
 #include "quaternionFilters.h"
 #include "MPU9250.h"
@@ -47,7 +46,7 @@ void setup()
   // TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(19200);
 
-  while(!Serial){};
+  while (!Serial) {};
 
   // Set up the interrupt pin, its set as active high, push-pull
   pinMode(intPin, INPUT);
@@ -57,12 +56,12 @@ void setup()
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
-  
+
   if (c == 0x71) // WHO_AM_I should always be 0x71
   {
     // Start by performing self test and reporting values
     myIMU.MPU9250SelfTest(myIMU.selfTest);
-    
+
     // Calibrate gyro and accelerometers, load biases in bias registers
     myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias);
 
@@ -73,7 +72,7 @@ void setup()
     // Read the WHO_AM_I register of the magnetometer, this is a good test of
     // communication
     byte d = myIMU.readByte(AK8963_ADDRESS, WHO_AM_I_AK8963);
-    
+
     if (d != 0x48)
     {
       // Communication failed, stop here
@@ -91,13 +90,13 @@ void setup()
 
     // The next call delays for 4 seconds, and then records about 15 seconds of
     // data to calculate bias and scale.
-//    myIMU.magCalMPU9250(myIMU.magBias, myIMU.magScale);
-   
-//    delay(2000); // Add delay to see results before serial spew of data
+    //    myIMU.magCalMPU9250(myIMU.magBias, myIMU.magScale);
+
+    //    delay(2000); // Add delay to see results before serial spew of data
 
   }
 
- // if (c == 0x71)
+  // if (c == 0x71)
   else
   {
     Serial.flush();
@@ -158,59 +157,55 @@ void loop()
 
 
 
-  myIMU.yaw   = atan2(2.0f * (*(getQ()+1) * *(getQ()+2) + *getQ()
-                    * *(getQ()+3)), *getQ() * *getQ() + *(getQ()+1)
-                    * *(getQ()+1) - *(getQ()+2) * *(getQ()+2) - *(getQ()+3)
-                    * *(getQ()+3));
-  myIMU.pitch = -asin(2.0f * (*(getQ()+1) * *(getQ()+3) - *getQ()
-                    * *(getQ()+2)));
-  myIMU.roll  = atan2(2.0f * (*getQ() * *(getQ()+1) + *(getQ()+2)
-                    * *(getQ()+3)), *getQ() * *getQ() - *(getQ()+1)
-                    * *(getQ()+1) - *(getQ()+2) * *(getQ()+2) + *(getQ()+3)
-                    * *(getQ()+3));
-      myIMU.pitch *= RAD_TO_DEG;
-      myIMU.yaw   *= RAD_TO_DEG;
+  myIMU.yaw   = atan2(2.0f * (*(getQ() + 1) * *(getQ() + 2) + *getQ()
+                              * *(getQ() + 3)), *getQ() * *getQ() + * (getQ() + 1)
+                      * *(getQ() + 1) - * (getQ() + 2) * *(getQ() + 2) - * (getQ() + 3)
+                      * *(getQ() + 3));
+  myIMU.pitch = -asin(2.0f * (*(getQ() + 1) * *(getQ() + 3) - *getQ()
+                              * *(getQ() + 2)));
+  myIMU.roll  = atan2(2.0f * (*getQ() * *(getQ() + 1) + * (getQ() + 2)
+                              * *(getQ() + 3)), *getQ() * *getQ() - * (getQ() + 1)
+                      * *(getQ() + 1) - * (getQ() + 2) * *(getQ() + 2) + * (getQ() + 3)
+                      * *(getQ() + 3));
+  myIMU.pitch *= RAD_TO_DEG;
+  myIMU.yaw   *= RAD_TO_DEG;
 
-      // Declination of SparkFun Electronics (40°05'26.6"N 105°11'05.9"W) is
-      // 	8° 30' E  ± 0° 21' (or 8.5°) on 2016-07-19
-      // - http://www.ngdc.noaa.gov/geomag-web/#declination
-      myIMU.yaw  -= 8.5;
-      myIMU.roll *= RAD_TO_DEG;
+  // Declination of SparkFun Electronics (40°05'26.6"N 105°11'05.9"W) is
+  // 	8° 30' E  ± 0° 21' (or 8.5°) on 2016-07-19
+  // - http://www.ngdc.noaa.gov/geomag-web/#declination
+  myIMU.yaw  -= 8.5;
+  myIMU.roll *= RAD_TO_DEG;
 
-      if(SerialDebug)
+  if (SerialDebug)
+  {
+    byte yawArray[4];
+    float test0 = myIMU.yaw;
+    //float test1 = myIMU.pitch;
+    byte bumpSwitch;
+    int32_t IMU_int;
+    byte incomingByte;
+
+    if (Serial.available() > 0) {
+      incomingByte = Serial.read() - 48;
+
+      if (incomingByte == 0)
       {
-          byte yawArray[4];
-          float test0 = myIMU.yaw;
-          //float test1 = myIMU.pitch;
-          byte bumpSwitch;
-          int32_t IMU_int;
-          byte incomingByte;
+        if (test0 < 0)
+          Serial.print('-');
+        else
+          Serial.print('0');
 
-          if (Serial.available() > 0){
-            incomingByte = Serial.read() - 48;
+        float abstest0 = abs(test0);
+        if (abstest0 < 100) Serial.print('0');
+        if (abstest0 < 10) Serial.print('0');
+        Serial.print(abstest0, 2);
 
-            if (incomingByte == 0)
-            {  
-                  if (test0 < 0)
-                    Serial.print('-');
-                  else
-                    Serial.print('0');
-                  
-                  float abstest0 = abs(test0);
-                  if (abstest0 < 100) Serial.print('0');
-                  if (abstest0 < 10) Serial.print('0');
-                  Serial.print(abstest0, 2);
-
-                  Serial.println();
-              
-            }
-          }
-//          
-  
-                  
+        Serial.println();
       }
+    }
+  }
 
-      myIMU.count = millis();
-      myIMU.sumCount = 0;
-      myIMU.sum = 0;
+  myIMU.count = millis();
+  myIMU.sumCount = 0;
+  myIMU.sum = 0;
 }
