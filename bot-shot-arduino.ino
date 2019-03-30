@@ -27,11 +27,9 @@
 #include "MPU9250.h"
 
 #define AHRS true         // Set to false for basic data read
-#define SerialDebug true  // Set to true to get Serial output for debugging
 
 // Pin definitions
 int intPin = 12;  // These can be changed, 2 and 3 are the Arduinos ext int pins
-int myLed  = 13;  // Set up pin 13 led for toggling
 
 #define I2Cclock 400000
 #define I2Cport Wire
@@ -51,8 +49,6 @@ void setup()
   // Set up the interrupt pin, its set as active high, push-pull
   pinMode(intPin, INPUT);
   digitalWrite(intPin, LOW);
-  pinMode(myLed, OUTPUT);
-  digitalWrite(myLed, HIGH);
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
@@ -167,6 +163,8 @@ void loop()
                               * *(getQ() + 3)), *getQ() * *getQ() - * (getQ() + 1)
                       * *(getQ() + 1) - * (getQ() + 2) * *(getQ() + 2) + * (getQ() + 3)
                       * *(getQ() + 3));
+  
+  myIMU.roll *= RAD_TO_DEG;
   myIMU.pitch *= RAD_TO_DEG;
   myIMU.yaw   *= RAD_TO_DEG;
 
@@ -174,34 +172,29 @@ void loop()
   // 	8° 30' E  ± 0° 21' (or 8.5°) on 2016-07-19
   // - http://www.ngdc.noaa.gov/geomag-web/#declination
   myIMU.yaw  -= 8.5;
-  myIMU.roll *= RAD_TO_DEG;
 
-  if (SerialDebug)
-  {
-    byte yawArray[4];
-    float test0 = myIMU.yaw;
-    //float test1 = myIMU.pitch;
-    byte bumpSwitch;
-    int32_t IMU_int;
-    byte incomingByte;
+  float test0 = myIMU.pitch;
+  //float test1 = myIMU.pitch;
+  byte bumpSwitch;
+  int32_t IMU_int;
+  byte incomingByte;
 
-    if (Serial.available() > 0) {
-      incomingByte = Serial.read() - 48;
+  if (Serial.available() > 0) {
+    incomingByte = Serial.read() - 48;
 
-      if (incomingByte == 0)
-      {
-        if (test0 < 0)
-          Serial.print('-');
-        else
-          Serial.print('0');
+    if (incomingByte == 0)
+    {
+      if (test0 < 0)
+        Serial.print('-');
+      else
+        Serial.print('0');
 
-        float abstest0 = abs(test0);
-        if (abstest0 < 100) Serial.print('0');
-        if (abstest0 < 10) Serial.print('0');
-        Serial.print(abstest0, 2);
+      float abstest0 = abs(test0);
+      if (abstest0 < 100) Serial.print('0');
+      if (abstest0 < 10) Serial.print('0');
+      Serial.print(abstest0, 2);
 
-        Serial.println();
-      }
+      Serial.println();
     }
   }
 
