@@ -173,28 +173,18 @@ void loop()
   // - http://www.ngdc.noaa.gov/geomag-web/#declination
   myIMU.yaw  -= 8.5;
 
-  float test0 = myIMU.pitch;
-  //float test1 = myIMU.pitch;
-  byte bumpSwitch;
-  int32_t IMU_int;
+  float IMU0 = myIMU.roll;
+  
   byte incomingByte;
+  String msg;
 
   if (Serial.available() > 0) {
     incomingByte = Serial.read() - 48;
 
     if (incomingByte == 0)
     {
-      if (test0 < 0)
-        Serial.print('-');
-      else
-        Serial.print('0');
-
-      float abstest0 = abs(test0);
-      if (abstest0 < 100) Serial.print('0');
-      if (abstest0 < 10) Serial.print('0');
-      Serial.print(abstest0, 2);
-
-      Serial.println();
+      msg = String(IMU0, 2);
+      Serial.println(msg);
     }
   }
 
