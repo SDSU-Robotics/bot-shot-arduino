@@ -181,34 +181,33 @@ void loop()
       {
           byte yawArray[4];
           float test0 = myIMU.yaw;
-          float test1 = myIMU.pitch;
+          //float test1 = myIMU.pitch;
+          byte bumpSwitch;
           int32_t IMU_int;
+          byte incomingByte;
+
+          if (Serial.available() > 0){
+            incomingByte = Serial.read() - 48;
+
+            if (incomingByte == 0)
+            {  
+                  if (test0 < 0)
+                    Serial.print('-');
+                  else
+                    Serial.print('0');
+                  
+                  float abstest0 = abs(test0);
+                  if (abstest0 < 100) Serial.print('0');
+                  if (abstest0 < 10) Serial.print('0');
+                  Serial.print(abstest0, 2);
+
+                  Serial.println();
+              
+            }
+          }
+//          
   
-          Serial.print(':');
-  
-          if (test0 < 0)
-            Serial.print('-');
-          else
-            Serial.print('0');
-          
-          float abstest0 = abs(test0);
-          if (abstest0 < 100) Serial.print('0');
-          if (abstest0 < 10) Serial.print('0');
-          Serial.print(abstest0, 2);
-  
-          Serial.print(",");
-  
-          if (test1 < 0)
-            Serial.print('-');
-          else
-            Serial.print('0');
-          float abstest1 = abs(test1);
-          if (abstest1 < 100) Serial.print('0');
-          if (abstest1 < 10) Serial.print('0');
-          Serial.print(abstest1, 2);
-  
-          Serial.print("\n");      
-        
+                  
       }
 
       myIMU.count = millis();
