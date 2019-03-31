@@ -42,7 +42,7 @@ void setup()
 {
   Wire.begin();
   // TWBR = 12;  // 400 kbit/sec I2C speed
-  Serial.begin(19200);
+  Serial.begin(115200);
 
   while (!Serial) {};
 
