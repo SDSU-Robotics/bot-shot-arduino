@@ -25,8 +25,19 @@
 
 #include "quaternionFilters.h"
 #include "MPU9250.h"
+#include <Servo.h>
 
 #define AHRS true         // Set to false for basic data read
+
+const int numReadings = 10;
+
+float IMUReadings[numReadings] = {0};
+int readIndex = 0;
+float total = 0;
+float IMUAverage = 0;
+int sum = 0;
+
+
 
 // Pin definitions
 int intPin = 12;  // These can be changed, 2 and 3 are the Arduinos ext int pins
@@ -36,13 +47,20 @@ int intPin = 12;  // These can be changed, 2 and 3 are the Arduinos ext int pins
 #define MPU9250_ADDRESS MPU9250_ADDRESS_AD0   // Use either this line or the next to select which I2C address your device is using
 //#define MPU9250_ADDRESS MPU9250_ADDRESS_AD1
 
+
 MPU9250 myIMU(MPU9250_ADDRESS, I2Cport, I2Cclock);
+
+Servo myservo;
+
+int pos = 0;
 
 void setup()
 {
   Wire.begin();
   // TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(115200);
+
+  myservo.attach(9);
 
   while (!Serial) {};
 
@@ -175,18 +193,57 @@ void loop()
 
   float IMU0 = myIMU.roll;
   
-  byte incomingByte;
+  byte incomingByte[2];
   String msg;
 
-  if (Serial.available() > 0) {
-    incomingByte = Serial.read() - 48;
+//  if (Serial.available() > 0) 
+//  {  
+//      incomingByte = Serial.read()-48;
+//      if (incomingByte == 0)
+//      {
+//        msg = String(IMU0, 2);
+//        Serial.println(msg);
+//      }
+//  }
 
-    if (incomingByte == 0)
+    for (readIndex = 0; readIndex < numReadings; ++readIndex)
     {
-      msg = String(IMU0, 2);
-      Serial.println(msg);
+         IMUReadings[readIndex+1] = IMUReadings[readIndex];
+         if (readIndex == numReadings)
+         {
+            total = IMUReadings[readIndex];
+         }
+         IMUReadings[readIndex] = IMU0;        
     }
-  }
+
+    sum = 0;
+
+    for (int i = 0; i < numReadings; ++i)
+    {
+        sum = sum + IMUReadings[i];
+    }
+
+    IMUAverage = sum / numReadings;
+
+    if (Serial.available() > 0) 
+    {
+        incomingByte[1] = Serial.read()-48;
+        //Serial.println(incomingByte]);
+
+        if (incomingByte[1] == 0)
+        {
+          msg = String(IMUAverage, 2);
+          Serial.println(msg);
+        }
+        else if (incomingByte[1] == 1)
+        {
+          incomingByte[2] = Serial.read();
+          Serial.println(incomingByte[2]-48);
+          myservo.write(incomingByte[2]-48);              
+        }
+     }
+    
+  
 
   myIMU.count = millis();
   myIMU.sumCount = 0;
