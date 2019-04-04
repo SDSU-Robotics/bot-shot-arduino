@@ -29,9 +29,9 @@
 
 #define AHRS true         // Set to false for basic data read
 
-const int numReadings = 10;
+const int NUM_READINGS = 10;
 
-float IMUReadings[numReadings] = {0};
+float IMUReadings[NUM_READINGS] = {0};
 int readIndex = 0;
 float total = 0;
 float IMUAverage = 0;
@@ -196,40 +196,21 @@ void loop()
   byte incomingByte[2];
   String msg;
 
-//  if (Serial.available() > 0) 
-//  {  
-//      incomingByte = Serial.read()-48;
-//      if (incomingByte == 0)
-//      {
-//        msg = String(IMU0, 2);
-//        Serial.println(msg);
-//      }
-//  }
+    total = total - IMUReadings[readIndex];
+    IMUReadings[readIndex] = IMU0;
+    total = total + IMUReadings[readIndex];
+    readIndex++;
 
-    for (readIndex = 0; readIndex < numReadings; ++readIndex)
+    if(readIndex >= NUM_READINGS)
     {
-         IMUReadings[readIndex+1] = IMUReadings[readIndex];
-         if (readIndex == numReadings)
-         {
-            total = IMUReadings[readIndex];
-         }
-         IMUReadings[readIndex] = IMU0;        
+        readIndex = 0;
     }
 
-    sum = 0;
-
-    for (int i = 0; i < numReadings; ++i)
-    {
-        sum = sum + IMUReadings[i];
-    }
-
-    IMUAverage = sum / numReadings;
+    IMUAverage = total / NUM_READINGS;
 
     if (Serial.available() > 0) 
     {
         incomingByte[1] = Serial.read()-48;
-        //Serial.println(incomingByte]);
-
         if (incomingByte[1] == 0)
         {
           msg = String(IMUAverage, 2);
@@ -238,7 +219,6 @@ void loop()
         else if (incomingByte[1] == 1)
         {
           incomingByte[2] = Serial.read();
-          Serial.println(incomingByte[2]-48);
           myservo.write(incomingByte[2]-48);              
         }
      }
