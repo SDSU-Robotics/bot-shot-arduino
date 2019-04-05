@@ -15,7 +15,7 @@ int launchPotPort = A0;
 void setup()
 {
   Serial.begin(115200);
-  myservo.attach(9);
+  myservo.attach(11);
 
   for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
     launchPotReadings[thisReading] = 0;
