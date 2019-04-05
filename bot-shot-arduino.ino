@@ -11,6 +11,8 @@ void setup()
 
   myservo.attach(9);
 
+  while (!Serial) {};
+
 }
 
 void loop()
@@ -18,16 +20,14 @@ void loop()
   byte incomingByte[2];
   String msg;
 
-    if (Serial.available() > 0) 
+  if (Serial.available() > 0)
+  {
+    incomingByte[1] = Serial.read() - 48;
+    if (incomingByte[1] == 1)
     {
-        incomingByte[1] = Serial.read() - 48;
-        
-        if ((incomingByte[1]) == 1)
-        {
-          incomingByte[2] = Serial.read();
-          myservo.write(incomingByte[2]-48);              
-        }
-     }
-    
-
+      incomingByte[2] = Serial.read();
+      myservo.write(incomingByte[2] - 48);
+    }
+  }
+  delay(20);
 }
