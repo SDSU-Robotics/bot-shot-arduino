@@ -27,22 +27,23 @@ void loop()
   byte incomingByte[2];
   String msg;
 
-  total = total - launchPotReadings[readIndex];
-  launchPotReadings[readIndex] = analogRead(launchPotPort);
-  total = total + launchPotReadings[readIndex];
-  readIndex = readIndex++;      
-  if (readIndex >= NUM_READINGS) 
-  {
-    readIndex = 0;
-  }
-  launchPotAverage = total / NUM_READINGS;   
+  //total = total - launchPotReadings[readIndex];
+  //launchPotReadings[readIndex] = analogRead(launchPotPort);
+  //Serial.println(launchPotReadings[readIndex]);
+  //total = total + launchPotReadings[readIndex];
+  //readIndex = readIndex++;      
+  //if (readIndex >= NUM_READINGS) 
+  //{
+  //  readIndex = 0;
+  //}
+  //launchPotAverage = total / NUM_READINGS;   
 
   if (Serial.available() > 0)
   {
     incomingByte[1] = Serial.read() - 48;
     if (incomingByte[1] == 0)
     {
-        msg = String(launchPotAverage, 2);
+        msg = String(analogRead(launchPotPort));
         Serial.println(msg);       
     }
     if (incomingByte[1] == 1)
